@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput} from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView} from 'react-native';
 import { theme } from './color';
 
 export default function App() {
@@ -16,6 +16,7 @@ export default function App() {
       return
     }
     const newToDos = Object.assign({}, toDos, {[Date.now()] : {text, work:working}}); //target, source 순 key는 현재시간
+    //const newToDos = {...toDos, {[Date.now()] : {text, work:working}}}; 
     setToDos(newToDos);
     setText("");
   }
@@ -41,6 +42,14 @@ export default function App() {
       returnKeyType = "done"
       value ={text}
       style={styles.input}/>
+
+      <ScrollView>
+        {Object.keys(toDos).map(key =>
+        <View key={key} style={styles.toDo}>
+          <Text style={styles.toDoText}>{toDos[key].text}</Text>
+        </View>
+        )}
+      </ScrollView>
     </View>
   );
 }
@@ -65,11 +74,25 @@ const styles = StyleSheet.create({
   },
 
   input : {
-    marginTop: 30,
+    marginVertical: 30,
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderRadius : 30,
     backgroundColor : theme.white,
     fontSize : 17,
+  },
+
+  toDo : {
+    backgroundColor : theme.grey,
+    marginBottom : 10,
+    paddingVertical : 20,
+    paddingHorizontal : 20,
+    borderRadius : 15,
+  },
+
+  toDoText : {
+    color : theme.white,
+    fontSize : 16,
+    fontWeight : "500"
   }
 });
