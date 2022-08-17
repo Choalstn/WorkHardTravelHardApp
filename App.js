@@ -1,16 +1,25 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity} from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput} from 'react-native';
 import { theme } from './color';
 
 export default function App() {
   const [working, setWorking] = useState(true);
+  const [text, setText] = useState("");
+  const [toDos, setToDos] = useState({});
+   
   const travel = () => setWorking(false);
   const work = () => setWorking(true);
-
-  const color = {
-    work : ""
+  const onChangeText = (payload) => setText(payload);
+  const addToDo = () => {
+    if(text === "") {
+      return
+    }
+    const newToDos = Object.assign({}, toDos, {[Date.now()] : {text, work:working}}); //target, source 순 key는 현재시간
+    setToDos(newToDos);
+    setText("");
   }
+
 
   return (
     <View style={styles.container}>
@@ -24,6 +33,14 @@ export default function App() {
         <Text style={{...styles.btnText, color : working ? theme.grey : theme.white}}>Travel</Text>
         </TouchableOpacity>
       </View>
+
+      <TextInput 
+      placeholder={working ? "Add Todo" : "Plan the Travel !!"} 
+      onSubmitEditing = {addToDo}
+      onChangeText={onChangeText} 
+      returnKeyType = "done"
+      value ={text}
+      style={styles.input}/>
     </View>
   );
 }
@@ -45,5 +62,14 @@ const styles = StyleSheet.create({
     fontSize : 38,
     fontWeight : "600",
     color : 'white'
+  },
+
+  input : {
+    marginTop: 30,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius : 30,
+    backgroundColor : theme.white,
+    fontSize : 17,
   }
 });
