@@ -1,8 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView} from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Alert} from 'react-native';
 import { theme } from './color';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function App() {
   useEffect(() => {loadToDos();}, []);
@@ -11,11 +14,14 @@ export default function App() {
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({});
 
+
   const STORAGE_KEY = '@toDos';
    
   const travel = () => setWorking(false);
   const work = () => setWorking(true);
+
   const onChangeText = (payload) => setText(payload);
+
   const saveToDos = async (value) => {
     const jsonValue = JSON.stringify(value)
     await AsyncStorage.setItem(STORAGE_KEY, jsonValue)
@@ -32,11 +38,42 @@ export default function App() {
     if(text === "") {
       return
     }
-    const newToDos = Object.assign({}, toDos, {[Date.now()] : {text, work:working}}); //target, source 순 key는 현재시간
+    const newToDos = Object.assign({}, toDos, {[Date.now()] : {text, work:working, isdone:false}}); //target, source 순 key는 현재시간
     //const newToDos = {...toDos, {[Date.now()] : {text, work:working}}}; 
     setToDos(newToDos);
     await saveToDos(newToDos);
     setText("");
+  }
+
+  const deleteToDo = (key) => {
+    Alert.alert("Delete", "Do you wanna delete?",
+    [
+      {text : "NO"},
+      {
+        text : "DELETE",
+        style : 'destructive',
+        onPress : () => {
+          const newToDos = {...toDos};
+          delete newToDos[key];
+          setToDos(newToDos);
+          saveToDos(newToDos);
+        },
+      },
+    ])
+  }
+
+  const doneToDo = (key) => {
+    const newToDos = {...toDos};
+  
+    if(newToDos[key].isdone == false) {
+      newToDos[key].isdone = true
+    } else {
+      newToDos[key].isdone = false
+    };
+    
+    console.log(newToDos[key].isdone);
+    setToDos(newToDos);
+    saveToDos(newToDos);
   }
 
 
@@ -65,7 +102,29 @@ export default function App() {
         {Object.keys(toDos).map((key) =>
         toDos[key].work === working ? (
         <View key={key} style={styles.toDo}>
-          <Text style={styles.toDoText}>{toDos[key].text}</Text>
+          <View style={styles.check}>
+
+          <TouchableOpacity onPress={() => doneToDo(key)}> 
+          <Text style={{marginRight:5}}> <Ionicons name="md-checkmark-circle" size={20} style={{color : toDos[key].isdone === true ? "#666666" : "white"}} /> </Text>
+          </TouchableOpacity>
+          <Text style={{
+            ...styles.toDoText, 
+            color : toDos[key].isdone == true ? "#666666" : "white", 
+            textDecorationLine :  toDos[key].isdone == true ? 'line-through' : null,
+            textDecorationColor : '#999999'
+            }}>{toDos[key].text}</Text>
+          </View>
+        
+
+          <View style={styles.editWithtrash}>
+            <TouchableOpacity>
+            <Text style={{marginRight:7, marginTop:2, color : toDos[key].isdone == true ? "#666666" : "white"}}> <MaterialIcons name="edit" size={20} /> </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => deleteToDo(key)}>
+              <Text style={{color : toDos[key].isdone == true ? "#666666" : "white"}}> <FontAwesome5 name="trash" size={15} /> </Text>
+              </TouchableOpacity>
+          </View>
         </View>) : null
         )}
       </ScrollView>
@@ -101,17 +160,31 @@ const styles = StyleSheet.create({
     fontSize : 17,
   },
 
+  check : {
+    flexDirection : 'row',
+    alignItems : 'center',
+    justifyContent : 'space-evenly'
+  },
+
   toDo : {
     backgroundColor : theme.grey,
     marginBottom : 10,
-    paddingVertical : 20,
+    paddingVertical : 18,
     paddingHorizontal : 20,
     borderRadius : 15,
+    flexDirection : 'row',
+    justifyContent : 'space-between',
+    alignItems : 'center',
   },
 
   toDoText : {
     color : theme.white,
     fontSize : 16,
     fontWeight : "500"
+  },
+
+  editWithtrash : {
+    flexDirection : 'row',
+    alignItems : 'center'
   }
 });
