@@ -13,6 +13,8 @@ export default function App() {
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({});
+  const [edit, setEdit] = useState(false);
+  const [newText, setNewText] = useState('');
 
 
   const STORAGE_KEY = '@toDos';
@@ -38,7 +40,7 @@ export default function App() {
     if(text === "") {
       return
     }
-    const newToDos = Object.assign({}, toDos, {[Date.now()] : {text, work:working, isdone:false}}); //target, source 순 key는 현재시간
+    const newToDos = Object.assign({}, toDos, {[Date.now()] : {text, work:working, isdone:false, editMode:false}}); //target, source 순 key는 현재시간
     //const newToDos = {...toDos, {[Date.now()] : {text, work:working}}}; 
     setToDos(newToDos);
     await saveToDos(newToDos);
@@ -70,10 +72,27 @@ export default function App() {
     } else {
       newToDos[key].isdone = false
     };
-    
-    console.log(newToDos[key].isdone);
+  
     setToDos(newToDos);
     saveToDos(newToDos);
+  }
+
+  const editToDo = async(key) => {
+    const newToDos = {...toDos};
+
+    if(newToDos[key].editMode == false) {
+      newToDos[key].editMode = true
+    } else {
+      newToDos[key].editMode = false
+    }
+
+    Alert.prompt('Edit Mode', 'Enter the change ', editText); 
+  }
+
+  const editText = (e) => {
+    const newToDos = {...toDos};
+    console.log(newToDos);
+  
   }
 
 
@@ -96,7 +115,8 @@ export default function App() {
       onChangeText={onChangeText} 
       returnKeyType = "done"
       value ={text}
-      style={styles.input}/>
+      style={styles.input}
+      />
 
       <ScrollView>
         {Object.keys(toDos).map((key) =>
@@ -112,12 +132,15 @@ export default function App() {
             color : toDos[key].isdone == true ? "#666666" : "white", 
             textDecorationLine :  toDos[key].isdone == true ? 'line-through' : null,
             textDecorationColor : '#999999'
-            }}>{toDos[key].text}</Text>
+            }}>
+              {toDos[key].text}
+          </Text>
+          
           </View>
         
 
           <View style={styles.editWithtrash}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => editToDo(key)}>
             <Text style={{marginRight:7, marginTop:2, color : toDos[key].isdone == true ? "#666666" : "white"}}> <MaterialIcons name="edit" size={20} /> </Text>
             </TouchableOpacity>
 
